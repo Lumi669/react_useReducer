@@ -1,15 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
 
+const emailReducer = (state, action) => {
+  console.log("action.val = ", action.val);
+  console.log("state.isValid = ", state.isValid);
+
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.val,
+      isValid: action.val.includes("@"),
+    };
+  }
+  if (action.type === "INPUT_BLUR") {
+    // here keep the last state for entered email which can be get from state, state has the latest input
+    // isValid can be checked by state.value.includes("@")
+    return { value: state.value, isValid: state.value.includes("@") };
+  }
+  return { value: "", isValid: false };
+};
+
 const Login = (props) => {
-  const [enteredEmail, setEnteredEmail] = useState("");
-  const [emailIsValid, setEmailIsValid] = useState();
+  // before use useReducer(), use useState to manage state
+  // const [enteredEmail, setEnteredEmail] = useState("");
+  // const [emailIsValid, setEmailIsValid] = useState();
   const [enteredPassword, setEnteredPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
+  console.log("formIsValid = ", formIsValid);
+
+  // Now use useReducer() to manage state, put enteredEmail and emailIsValid two states into on useReducer() for management
+  const [emailState, dispatchEmail] = useReducer(emailReducer, {
+    value: "",
+    isValid: false,
+  });
 
   useEffect(() => {
     console.log("EFFECT RUNNING");
@@ -34,8 +60,11 @@ const Login = (props) => {
   // }, [enteredEmail, enteredPassword]);
 
   const emailChangeHandler = (event) => {
-    setEnteredEmail(event.target.value);
+    // setEnteredEmail(emailState.value); //before use useReducer(), update state via set...
+    dispatchEmail({ type: "USER_INPUT", val: event.target.value }); //when use useReducer(), update state via despatch
 
+    // setFormIsValid(emailState.isValid && enteredPassword.trim().length > 6);
+    //NOTE: here use event.target.value.includes("@") NOT emailState.isValid!!!!!!!, the later one not update the email isValid status correctly!!!
     setFormIsValid(
       event.target.value.includes("@") && enteredPassword.trim().length > 6
     );
@@ -44,13 +73,17 @@ const Login = (props) => {
   const passwordChangeHandler = (event) => {
     setEnteredPassword(event.target.value);
 
-    setFormIsValid(
-      enteredEmail.includes("@") && event.target.value.trim().length > 6
-    );
+    setFormIsValid(emailState.isValid && event.target.value.trim().length > 6);
   };
 
   const validateEmailHandler = () => {
-    setEmailIsValid(enteredEmail.includes("@"));
+    // setEmailIsValid(emailState.isValid);   // before use useReducer(), use set... to update state
+
+    // when use useReducer, use dispacth to update state
+    // here only type is enough, but it still need to be an object, becaue action data structure should be consistent, line 55 use object already.
+    // don't need to put a value here, because we only care that when input lost focus. INPUT_BLUR means when focus is blured, which can be named sth
+    //else, eg. LOOSE_FOCUS etc.
+    dispatchEmail({ type: "INPUT_BLUR" });
   };
 
   const validatePasswordHandler = () => {
@@ -59,7 +92,7 @@ const Login = (props) => {
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(enteredEmail, enteredPassword);
+    props.onLogin(emailState.value, enteredPassword);
   };
 
   return (
@@ -67,14 +100,14 @@ const Login = (props) => {
       <form onSubmit={submitHandler}>
         <div
           className={`${classes.control} ${
-            emailIsValid === false ? classes.invalid : ""
+            emailState.isValid === false ? classes.invalid : ""
           }`}
         >
           <label htmlFor="email">E-Mail</label>
           <input
             type="email"
             id="email"
-            value={enteredEmail}
+            value={emailState.value}
             onChange={emailChangeHandler}
             onBlur={validateEmailHandler}
           />
