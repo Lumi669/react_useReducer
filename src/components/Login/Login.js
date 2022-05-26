@@ -63,17 +63,24 @@ const Login = (props) => {
     };
   }, []);
 
+  // alias assignment to give the key of an object another name, because here the two ojbects have the same key: isValid.
+  //so below line 74 and 81 can use the new name directly (first use object destructuring of course).
+  //before this modification, every time typing for email or password, useEffect will be executed once eventhough it is not need to execute yet.
+  // now, only when the validity is changed, the useEffect will execute.
+  const { isValid: emailIsValid } = emailState;
+  const { isValid: passwordIsValid } = passwordState;
+
   useEffect(() => {
     const identifier = setTimeout(() => {
       console.log("Checking form validity!");
-      setFormIsValid(emailState.isValid && passwordState.isValid);
+      setFormIsValid(emailIsValid && passwordIsValid);
     }, 500);
 
     return () => {
       console.log("CLEANUP");
       clearTimeout(identifier);
     };
-  }, [emailState, passwordState]);
+  }, [emailIsValid, passwordIsValid]);
 
   const emailChangeHandler = (event) => {
     // setEnteredEmail(emailState.value); //before use useReducer(), update state via set...
