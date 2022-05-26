@@ -63,19 +63,17 @@ const Login = (props) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   const identifier = setTimeout(() => {
-  //     console.log('Checking form validity!');
-  //     setFormIsValid(
-  //       enteredEmail.includes('@') && enteredPassword.trim().length > 6
-  //     );
-  //   }, 500);
+  useEffect(() => {
+    const identifier = setTimeout(() => {
+      console.log("Checking form validity!");
+      setFormIsValid(emailState.isValid && passwordState.isValid);
+    }, 500);
 
-  //   return () => {
-  //     console.log('CLEANUP');
-  //     clearTimeout(identifier);
-  //   };
-  // }, [enteredEmail, enteredPassword]);
+    return () => {
+      console.log("CLEANUP");
+      clearTimeout(identifier);
+    };
+  }, [emailState, passwordState]);
 
   const emailChangeHandler = (event) => {
     // setEnteredEmail(emailState.value); //before use useReducer(), update state via set...
@@ -83,7 +81,7 @@ const Login = (props) => {
 
     // setFormIsValid(emailState.isValid && enteredPassword.trim().length > 6);
     //NOTE: here use event.target.value.includes("@") NOT emailState.isValid!!!!!!!, the later one not update the email isValid status correctly!!!
-    setFormIsValid(event.target.value.includes("@") && passwordState.isValid);
+    // setFormIsValid(event.target.value.includes("@") && passwordState.isValid);
   };
 
   const passwordChangeHandler = (event) => {
@@ -91,7 +89,7 @@ const Login = (props) => {
     dispacthPassword({ type: "USER_INPUT", val: event.target.value });
 
     //note here should not use passwordState.isValid BUT use event.target.value.trim().length > 6)
-    setFormIsValid(emailState.isValid && event.target.value.trim().length > 6);
+    // setFormIsValid(emailState.isValid && event.target.value.trim().length > 6);
   };
 
   const validateEmailHandler = () => {
